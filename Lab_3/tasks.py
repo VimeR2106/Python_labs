@@ -1,5 +1,5 @@
 import math
-
+# Ускорить производительность функции
 def sum_nested_recursive(data):
     """
     Рекурсивный подсчёт суммы вложенного списка.
@@ -56,7 +56,7 @@ def sequence_iterative(k):
 
     return a, b
 
-print(sum_nested_recursive([1, [2, [3, 4, [5]]]]))
-print(sum_nested_iterative([1, [2, [3, 4, [5]]]]))
+print(sum_nested_recursive([1, [2,7], [3,[8],9, 4, [5]]]))
+print(sum_nested_iterative([1, [2,7], [3,[8],9, 4, [5]]]))
 print(sequence_recursive(10))
 print(sequence_iterative(10))

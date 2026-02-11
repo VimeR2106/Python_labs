@@ -1,7 +1,5 @@
 from itertools import product
 
-from itertools import product
-
 def count_code_words() -> int:
     """
     Возвращает количество допустимых кодовых слов.
@@ -70,3 +68,7 @@ def find_numbers_with_five_odd_divisors() -> list[int]:
 print(count_code_words())
 print(count_twos_in_ternary())
 print(find_numbers_with_five_odd_divisors())
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
