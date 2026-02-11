@@ -67,5 +67,6 @@ def find_numbers_with_five_odd_divisors() -> list[int]:
             result.append(n)
     return result
 
-
+print(count_code_words())
+print(count_twos_in_ternary())
 print(find_numbers_with_five_odd_divisors())
