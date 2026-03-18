@@ -1,116 +1,89 @@
-from functools import update_wrapper
-from json import JSONDecodeError, loads
-from time import monotonic, sleep
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+import time
+import requests
+from functools import wraps
 
+########### Декоратор для ограничения количества вызовов ##########
+def rate_limiter(func=None, *, max_calls=2, period=5):
+    calls = []
+    recursion_flag = [False]
 
-class RateLimiter:
-    """Простой декоратор-класс для ограничения частоты вызовов."""
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            nonlocal calls
+            now = time.time()
+            # Только для внешнего вызова
+            if not recursion_flag[0]:
+                calls = [t for t in calls if now - t < period]
+                if len(calls) >= max_calls:
+                    print("Лимит вызовов превышен, попробуйте позже")
+                    return None
+                calls.append(now)
+                recursion_flag[0] = True
+                result = f(*args, **kwargs)
+                recursion_flag[0] = False
+                return result
+            else:
+                # Внутренние рекурсивные вызовы не лимитируем
+                return f(*args, **kwargs)
+        return wrapper
 
-    def __init__(self, func=None, *, calls=1, period=1.0):
-        if calls < 1:
-            raise ValueError("calls must be >= 1")
-        if period <= 0:
-            raise ValueError("period must be > 0")
+    if func is None:
+        return decorator
+    return decorator(func)
 
-        self.func = func
-        self.calls = calls
-        self.period = period
-        self.timestamps = []
-        self.recursion_depth = 0
+########## Получение данных с API ##########
+def make_fetcher(url):
+    """
+    Замыкание для получения данных с API.
 
-        if func is not None:
-            update_wrapper(self, func)
-
-    def __call__(self, *args, **kwargs):
-        # Режим декорирования: @RateLimiter(calls=..., period=...)
-        if self.func is None:
-            if not args or not callable(args[0]):
-                raise TypeError("Decorator expects a callable")
-            return RateLimiter(args[0], calls=self.calls, period=self.period)
-
-        # Для рекурсии ограничение применяем только к верхнему вызову.
-        if self.recursion_depth == 0:
-            self._wait_if_needed()
-            self.timestamps.append(monotonic())
-
-        self.recursion_depth += 1
+    Возвращает функцию, которая делает запрос и
+    возвращает текст ответа.
+    """
+    def fetch():
         try:
-            return self.func(*args, **kwargs)
-        finally:
-            self.recursion_depth -= 1
+            response = requests.get(url)
+            data = response.json()
 
-    def _wait_if_needed(self):
-        now = monotonic()
-        self.timestamps = [t for t in self.timestamps if now - t < self.period]
+            # Пытаемся взять текст из разных полей
+            attributes = data["data"][0]["attributes"]
+            return attributes.get("body") or attributes.get("text")
 
-        if len(self.timestamps) >= self.calls:
-            wait_time = self.period - (now - self.timestamps[0])
-            if wait_time > 0:
-                sleep(wait_time)
+        except Exception as e:
+            return f"Ошибка: {e}"
 
+    return fetch
 
-def make_api_text_fetcher(
-    api_url,
-    *,
-    timeout=5.0,
-    calls=1,
-    period=1.0,
-):
-    """Возвращает замыкание для получения текста из API."""
+########## Функции собак и рекурсий ##########
+@rate_limiter(max_calls=1000, period=10000000000)
+def get_dog_fact():
+    """
+    Получает случайный факт о собаке через API.
+    Использует замыкание make_fetcher.
+    """
+    fetch = make_fetcher("https://dogapi.dog/api/v2/facts")
+    return fetch()
 
-    @RateLimiter(calls=calls, period=period)
-    def fetch_text():
-        request = Request(api_url, headers={"User-Agent": "Python-Lab-4"})
-        try:
-            with urlopen(request, timeout=timeout) as response:
-                payload = loads(response.read().decode("utf-8"))
-        except (HTTPError, URLError, TimeoutError, OSError, JSONDecodeError, UnicodeDecodeError) as error:
-            return f"API error: {error}"
+# Проверка работы
 
-        if isinstance(payload, dict):
-            data = payload.get("data", [])
-            if data and isinstance(data[0], dict):
-                attributes = data[0].get("attributes", {})
-                body = attributes.get("body")
-                if isinstance(body, str) and body.strip():
-                    return body
-
-        return "API response format is unexpected"
-
-    return fetch_text
-
-
-@RateLimiter
-def ping(name="pong"):
-    return f"ping: {name}"
-
-
-@RateLimiter(calls=2, period=1.0)
+# Пример рекурсии
+@rate_limiter(max_calls=1, period=0.000000001)
 def factorial(n):
-    if n < 2:
+    """
+    Пример рекурсивной функции с декоратором.
+    """
+    if n <= 1:
         return 1
     return n * factorial(n - 1)
 
-
-def demo():
-    print("=== Демонстрация декоратора-класса ===")
-    print(ping())
-
-    print("\n=== Демонстрация рекурсии ===")
-    print("factorial(6) =", factorial(6))
-    print("factorial(7) =", factorial(7))
-
-    print("\n=== Замыкание для API dogapi.dog ===")
-    fetch_dog_fact = make_api_text_fetcher(
-        "https://dogapi.dog/api/v2/facts",
-        calls=1,
-        period=1.0,
-    )
-    print("fact #1:", fetch_dog_fact())
-    print("fact #2:", fetch_dog_fact())
-
-
+########## Основной запуск ##########
 if __name__ == "__main__":
-    demo()
+    print("--- Dog facts ---")
+    for i in range(4):
+        print(f"Fact {i+1}:", get_dog_fact())
+        time.sleep(1)
+
+    print("\n--- Factorials ---")
+    for i in range(3, 8):
+        print(f"factorial({i}) =", factorial(i))
+        time.sleep(1)
