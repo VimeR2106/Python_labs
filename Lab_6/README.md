@@ -1,0 +1,132 @@
+# Лабораторная работа №6 — Модули и пакеты
+
+## Условия задач
+
+Реализовать расчёт параметров геометрических тел (параллелепипед, тетраэдр, шар):
+- **Объём**
+- **Площадь поверхности**
+- **Масса** (в зависимости от материала)
+
+Доступные материалы и их плотности (кг/м³):
+
+| Материал  | Плотность |
+|-----------|-----------|
+| Сталь     | 7800      |
+| Алюминий  | 2700      |
+| Медь      | 8900      |
+| Дерево    | 600       |
+| Пластик   | 1200      |
+
+---
+
+## Структура проекта
+
+```
+Lab_6/
+├── geometry/               ← пакет с 3 модулями
+│   ├── __init__.py
+│   ├── parallelepiped.py   ← Модуль 1: параллелепипед
+│   ├── tetrahedron.py      ← Модуль 2: тетраэдр
+│   └── sphere.py           ← Модуль 3: шар
+├── main.py                 ← главная программа (Kivy GUI)
+├── exporter.py             ← сохранение в Excel
+├── database.py             ← работа с PostgreSQL (Medium)
+├── docker-compose.yml      ← запуск БД в Docker (Medium)
+└── requirements.txt
+```
+
+---
+
+## Описание проделанной работы
+
+### Пакет `geometry`
+
+Пакет содержит три модуля, каждый реализует три функции: `volume()`, `surface()`, `mass()`.
+
+**`parallelepiped.py`** — принимает стороны `a, b, c`:
+$$V = a \cdot b \cdot c \qquad S = 2(ab + bc + ac)$$
+
+**`tetrahedron.py`** — принимает ребро `a`:
+$$V = \frac{a^3}{6\sqrt{2}} \qquad S = \sqrt{3}\,a^2$$
+
+**`sphere.py`** — принимает радиус `r`:
+$$V = \frac{4}{3}\pi r^3 \qquad S = 4\pi r^2$$
+
+Масса во всех случаях: $m = \rho \cdot V$
+
+### Графический интерфейс (Kivy)
+
+`main.py` строит интерфейс из стандартных виджетов Kivy:
+- `Spinner` — выбор фигуры и материала
+- `TextInput` — ввод параметров
+- `Button` — расчёт, сохранение в Excel, сохранение в БД
+
+### Сложность Rare — сохранение в Excel
+
+`exporter.py` использует `openpyxl`. При первом сохранении создаётся файл `results.xlsx` с заголовками; каждый следующий результат добавляется новой строкой.
+
+### Сложность Medium — PostgreSQL в Docker
+
+`database.py` использует `psycopg` (psycopg3). Функция `init_db()` создаёт таблицу `results` (если не существует). Функция `save_to_db()` добавляет строку.
+
+Запуск БД:
+```bash
+docker compose up -d
+```
+---
+
+## Запуск
+
+```bash
+# 0. Создать виртуальное окружение на совместимом Python (пример для 3.9)
+python3.9 -m venv .venv
+source .venv/bin/activate
+
+# 1. Установить зависимости
+pip install -r requirements.txt
+
+# 2. (Medium) Запустить PostgreSQL в Docker
+docker compose up -d
+
+# 3. Запустить приложение
+python main.py
+```
+
+---
+
+## Просмотр результатов в БД
+
+Перейдите в папку проекта и подключитесь к PostgreSQL:
+
+```bash
+cd '/Users/vimer/Desktop/УНИК/Programs/Python_labs/Lab_6'
+docker compose exec db psql -U user -d geometry_db
+```
+
+Внутри консоли psql:
+
+```sql
+-- Посмотреть все записи
+SELECT * FROM results;
+
+-- Выйти
+\q
+```
+
+> Важно: команду нужно запускать именно из папки `Lab_6`, где находится `docker-compose.yml`, иначе docker compose не найдёт конфигурацию.
+
+---
+
+## Скриншоты результатов
+
+> *Добавьте скриншоты после запуска*
+
+---
+
+## Используемые материалы
+
+- [Документация Kivy](https://kivy.org/doc/stable/)
+- [openpyxl](https://openpyxl.readthedocs.io/)
+- [psycopg](https://www.psycopg.org/psycopg3/docs/)
+- [Docker Compose](https://docs.docker.com/compose/)
+- Формулы: [Wikipedia — Тетраэдр](https://ru.wikipedia.org/wiki/Тетраэдр), [Wikipedia — Шар](https://ru.wikipedia.org/wiki/Шар)

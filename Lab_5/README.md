@@ -1,92 +1,48 @@
-# Python. Лабораторная работа №5
-## Генераторы
+# Лабораторная работа №5: Генераторы
 
 ## Условия задач
+1. Реализовать генератор простых чисел.
+2. Просуммировать возвращаемые генератором числа.
+3. Применить к генератору хотя бы одну из функций: `map`, `reduce`, `filter`.
+4. Написать тесты с помощью `pytest`.
 
-### Сложность: Rare
-Решите задачу своего варианта:
-- Генератор для построчного чтения файла.
-- Если длина строки превышает заданный предел — возвращает подстроку допустимого размера.
-- Переверните слова в строках, возвращаемых генератором.
-- К генератору должна быть применена хотя бы одна из функций `map`, `reduce`, `filter`.
+## Два уровня сложности
+### Rare
+- Генератор `prime_numbers(limit)` возвращает простые числа до `limit`.
+- Использована функция `filter`.
 
-### Сложность: Medium
-- Напишите для генератора тесты.
-
-### Сложность: Well-done
-- Реализуйте многопоточную/параллельную версию генератора.
-- Продемонстрируйте повышение производительности относительно исходной версии.
+### Medium
+- Добавлены тесты `pytest` для проверки функции `is_prime` и генератора `prime_numbers`.
+- Проверены случаи для `limit = 1`, `10`, `30`, `100`.
 
 ## Описание проделанной работы
+1. Создана функция `is_prime(number)` для проверки простоты числа.
+2. Создан генератор `prime_numbers(limit)` на основе `filter`.
+3. Сумма простых чисел считается через `sum(prime_numbers(n))`.
+4. Написаны тесты `pytest` в файле `test_tasks.py`.
+5. Проверена корректность на нескольких значениях (`1`, `10`, `30`, `100`).
 
-### Основной генератор (`generators.py`)
-
-1. **`read_file_lines(filename, max_length=80)`** — базовый генератор:
-   - Читает файл строка за строкой.
-   - Если длина строки > `max_length`, обрезает до нужного размера.
-   - Возвращает страки через `yield` (ленивое вычисление).
-
-2. **`reverse_words(line)`** — функция разворота слов:
-   - Разбивает строку на слова.
-   - Разворачивает их в обратном порядке.
-   - Объединяет обратно.
-
-3. **`generate_with_reversed_words(filename, max_length=80)`** — комбинированный генератор:
-   - Использует `read_file_lines` и `reverse_words`.
-   - Возвращает строки с развёрнутыми словами.
-
-4. **Применение `map`, `filter`, `reduce`**:
-   - `map`: применяем `reverse_words` к спискам строк.
-   - `filter`: отбираем только длинные строки (> 10 символов).
-   - `reduce`: конкатенируем строки в одну.
-
-### Тесты (`test_generators.py`)
-
-Пять простых тестов:
-- `test_reverse_words()` — проверка разворота слов.
-- `test_read_file_lines()` — проверка чтения файла.
-- `test_read_file_lines_max_length()` — проверка ограничения длины.
-- `test_generate_with_reversed_words()` — проверка комбинированного генератора.
-- `test_generator_is_lazy()` — проверка ленивого вычисления.
-
-### Многопоточная версия (`multithreaded_generators.py`)
-
-- `multithreaded_generator()` — многопоточная реализация.
-- Один поток читает файл, другой обрабатывает.
-- Используется `Queue` для передачи данных между потоками.
-
-### Скриншот результатов
-
-![Скриншот запуска generators](./static/generators.png)
-![Скриншот запуска test_generators](./static/test_generators.png)
-![Скриншот запуска multithreaded_generators](./static/multithreaded_generators.png)
-
-## Как запустить
-
+## Запуск
 ```bash
-# Основной генератор
-python3 generators.py
-
-# Тесты
-python3 test_generators.py
-
-# Многопоточная версия и бенчмарк
-python3 multithreaded_generators.py
+python Programs/Python_labs/Lab_5/tasks.py
+pytest
 ```
 
-## Ключевые концепции
+Ожидаемый результат:
+```text
+Простые числа: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+Сумма: 129
+...                                                                      [100%]
+3 passed in 0.01s
+```
 
-- **Генератор** — функция с `yield`, которая возвращает значения по одному.
-- **Ленивое вычисление** — данные вычисляются только когда их запрашивают.
-- **`map`** — применяет функцию к каждому элементу.
-- **`filter`** — отбирает элементы по условию.
-- **`reduce`** — объединяет элементы в один результат.
-- **Многопоточность** — параллельное выполнение задач для повышения производительности.
+## Скриншоты результатов
+![Результат запуска](./static/run_result.png)
+![Результат тестов](./static/tests_result.png)
+
 
 ## Ссылки на используемые материалы
-
-1. [Python docs: Генераторы](https://docs.python.org/ru/3/howto/functional.html#generators)
-2. [Python docs: map, filter, reduce](https://docs.python.org/3/library/functions.html#map)
-3. [Python docs: functools.reduce](https://docs.python.org/3/library/functools.html#functools.reduce)
-4. [Python docs: threading](https://docs.python.org/3/library/threading.html)
-5. [Python docs: queue.Queue](https://docs.python.org/3/library/queue.html)
+1. [Документация Python](https://docs.python.org/3/)
+2. [filter](https://docs.python.org/3/library/functions.html#filter)
+3. [sum](https://docs.python.org/3/library/functions.html#sum)
+4. [pytest](https://docs.pytest.org/)
