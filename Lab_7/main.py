@@ -46,6 +46,12 @@ class GeometryApp:
         )
         self._apply_shape_rules("Параллелепипед")
 
+    def __str__(self) -> str:
+        return f"GeometryApp(last={self.last is not None})"
+
+    def __repr__(self) -> str:
+        return f"GeometryApp(last={self.last!r})"
+
     @staticmethod
     def _build_layout():
         return [
@@ -106,6 +112,9 @@ class GeometryApp:
         except ValueError as exc:
             self._set_result(str(exc))
             return
+
+        print(f"str: {shape}")
+        print(f"repr: {repr(shape)}")
 
         volume = shape.volume()
         surface = shape.surface()

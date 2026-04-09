@@ -5,8 +5,9 @@ class GeometryBody(ABC):
     """Base abstract class for geometric bodies."""
 
     def __init__(self, density: float, material: str) -> None:
-        self.density = density
+        self._density = density
         self.material = material
+        print("!!!!")
 
     @property
     def density(self) -> float:
@@ -65,6 +66,19 @@ class SingleParameterBody(GeometryBody):
             raise ValueError("Размер a должен быть положительным числом")
         self._a = value
 
+    def __str__(self) -> str:
+        return (
+            f"{self.shape_name} "
+            f"(a={self.a}, material={self.material}, density={self.density})"
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}("
+            f"a={self.a!r}, density={self.density!r}, material={self.material!r}"
+            f")"
+        )
+
 
 class TripleParameterBody(GeometryBody):
     """Body with three linear dimensions (a, b, c)."""
@@ -105,3 +119,18 @@ class TripleParameterBody(GeometryBody):
     @c.setter
     def c(self, value: float) -> None:
         self._c = self._validate_side(value, "c")
+
+    def __str__(self) -> str:
+        return (
+            f"{self.shape_name} "
+            f"(a={self.a}, b={self.b}, c={self.c}, "
+            f"material={self.material}, density={self.density})"
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}("
+            f"a={self.a!r}, b={self.b!r}, c={self.c!r}, "
+            f"density={self.density!r}, material={self.material!r}"
+            f")"
+        )
